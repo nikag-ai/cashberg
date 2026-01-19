@@ -449,3 +449,51 @@ exports.undoTransaction = onCall(async (request) => {
         throw e;
     }
 });
+
+/**
+ * 7. Delete Bucket
+ * Moves any funds back to Safe Tip (Unallocated) and deletes the bucket.
+ */
+exports.deleteBucket = onCall(async (request) => {
+    try {
+        if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
+
+        const { bucketId } = request.data;
+        const uid = request.auth.uid;
+        const db = admin.firestore();
+
+        const bucketRef = db.doc(`users/${uid}/buckets/${bucketId}`);
+        const ledgerRef = db.doc(`users/${uid}/ledgers/main`);
+
+        return await db.runTransaction(async (t) => {
+            const bucketDoc = await t.get(bucketRef);
+            if (!bucketDoc.exists) throw new HttpsError('not-found', 'Bucket not found');
+
+            const bucket = bucketDoc.data();
+            const fundsToReturn = bucket.currentAmount || 0;
+
+            if (fundsToReturn > 0) {
+                const ledgerDoc = await t.get(ledgerRef);
+                if (!ledgerDoc.exists) throw new HttpsError('not-found', 'Ledger not found');
+
+                // Return funds to Safe Tip (Unallocate) and Frozen Mass (Defrost)
+                // Wait, if it's in a bucket, it's counted as Frozen Mass.
+                // Moving back to Safe Tip means we reduce Frozen Mass and increase Safe Tip.
+                t.update(ledgerRef, {
+                    safeTip: FieldValue.increment(fundsToReturn),
+                    frozenMass: FieldValue.increment(-fundsToReturn),
+                    updatedAt: FieldValue.serverTimestamp()
+                });
+            }
+
+            // Delete the bucket
+            t.delete(bucketRef);
+
+            return { success: true, fundsReturned: toDollars(fundsToReturn) };
+        });
+
+    } catch (e) {
+        console.error("DEBUG_V2: DELETE BUCKET CRASH", e);
+        throw e;
+    }
+});
