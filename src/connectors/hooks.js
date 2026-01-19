@@ -6,7 +6,7 @@ import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/
 
 // Init Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyBdengfPTQQ3zSRerYKgwS7_gWfrrkrzIE",
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
     authDomain: "cashberg-fc307.firebaseapp.com",
     projectId: "cashberg-fc307",
     storageBucket: "cashberg-fc307.firebasestorage.app",
@@ -144,6 +144,7 @@ export const useFunctions = () => {
         transferFunds: httpsCallable(functions, 'transferFunds'),
         reconcileLedger: httpsCallable(functions, 'reconcileLedger'),
         undoTransaction: httpsCallable(functions, 'undoTransaction'),
-        createBucket: httpsCallable(functions, 'createBucket') // If used
+        createBucket: httpsCallable(functions, 'createBucket'),
+        deleteBucket: httpsCallable(functions, 'deleteBucket')
     };
 };
