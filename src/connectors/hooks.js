@@ -4,14 +4,15 @@ import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, conne
 import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, connectFirestoreEmulator } from 'firebase/firestore';
 import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
 
-// Init Firebase (Using same config as test for now or from environment)
+// Init Firebase
 const firebaseConfig = {
-    apiKey: "fake-api-key",
-    authDomain: "cashberg-test.firebaseapp.com",
-    projectId: "cashberg-test",
-    storageBucket: "cashberg-test.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef"
+    apiKey: "AIzaSyBdengfPTQQ3zSRerYKgwS7_gWfrrkrzIE",
+    authDomain: "cashberg-fc307.firebaseapp.com",
+    projectId: "cashberg-fc307",
+    storageBucket: "cashberg-fc307.firebasestorage.app",
+    messagingSenderId: "708481398398",
+    appId: "1:708481398398:web:117d13a52c7f4130154a2f",
+    measurementId: "G-M7HM6ZFJSJ"
 };
 
 const app = initializeApp(firebaseConfig);
