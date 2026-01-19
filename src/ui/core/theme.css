@@ -1,0 +1,95 @@
+:root {
+    /* --- PALETTE: Deep Ocean --- */
+
+    /* The Sky (Surface) */
+    --sky-gradient-start: #f3f4f6;
+    /* Dawn Grey */
+    --sky-gradient-end: #e2e8f0;
+    /* Soft White/Grey */
+
+    /* The Water (Deep) */
+    --water-line-color: #0ea5e9;
+    /* Vivid Sky Blue */
+    --deep-bg-start: #0f172a;
+    /* Slate 900 */
+    --deep-bg-end: #020617;
+    /* Slate 950 */
+
+    /* The Ice (Spendable) */
+    --ice-tip-bg: #E0F7FA;
+    /* Cyan 50 - Crystalline White */
+    --ice-tip-accent: #22d3ee;
+    /* Cyan 400 */
+
+    /* Accents */
+    --color-melt: #FF6B6B;
+    /* Salmon/Coral */
+    --color-freeze: #06b6d4;
+    /* Cyan */
+    --color-text-dark: #0f172a;
+    --color-text-light: #f8fafc;
+    --color-text-muted: #94a3b8;
+
+    /* Typography */
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-sans: 'Inter', sans-serif;
+
+    /* Glassmorphism Tokens */
+    --glass-panel-light: rgba(255, 255, 255, 0.65);
+    --glass-panel-dark: rgba(15, 23, 42, 0.8);
+    --glass-blur: 16px;
+    --glass-border-light: rgba(255, 255, 255, 0.4);
+    --glass-border-dark: rgba(255, 255, 255, 0.1);
+
+    /* Spacing & Radius */
+    --radius-lg: 24px;
+    --radius-xl: 32px;
+    --spacing-unit: 8px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-sans);
+    background: var(--sky-gradient-start);
+    color: var(--color-text-dark);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    /* App-like feel, no global scrollbar */
+}
+
+/* Typography Utilities */
+.font-mono {
+    font-family: var(--font-mono);
+}
+
+.text-huge {
+    font-size: 3.5rem;
+    letter-spacing: -2px;
+    font-weight: 700;
+}
+
+.text-label {
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+/* Animation Utilities */
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}

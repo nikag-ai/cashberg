@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper to check ownership
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Match User Document
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      // Match Subcollections
+      match /ledgers/{ledgerId} {
+        allow read: if isOwner(userId);
+        // Write only allowed via Cloud Functions (Admin SDK bypasses rules)
+        // OR if we want to allow direct writes for some things?
+        // Let's restricting direct writes to ensure Math correctness.
+        allow write: if false; 
+        
+        match /transactions/{txnId} {
+            allow read: if isOwner(userId);
+            allow write: if false; // Only via Cloud Function
+        }
+      }
+
+      match /buckets/{bucketId} {
+        allow read: if isOwner(userId);
+        // Maybe allow CRUD for creating buckets?
+        allow create, update, delete: if isOwner(userId);
+      }
+    }
+  }
+}

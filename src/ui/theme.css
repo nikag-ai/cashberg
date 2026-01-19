@@ -1,0 +1,70 @@
+:root {
+    /* Dynamic Ocean Palette */
+    --color-surface-start: #F1F5F9;
+    /* Pale Dawn Grey */
+    --color-surface-end: #E0F7FA;
+    /* Soft Cyan */
+    --color-deep-start: #1E293B;
+    /* Deep Navy */
+    --color-deep-end: #020617;
+    /* Abyss Black */
+
+    /* Brand Accents */
+    --color-action-melt: #FF6B6B;
+    /* Salmon/Coral */
+    --color-ice-border: rgba(255, 255, 255, 0.3);
+    --color-ice-glow: rgba(0, 255, 255, 0.4);
+
+    /* Typography */
+    --font-mono: 'JetBrains Mono', 'Space Mono', monospace;
+    --font-sans: system-ui, -apple-system, sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-sans);
+    overflow: hidden;
+    /* App-like feel */
+    background: var(--color-surface-start);
+    color: #334155;
+}
+
+/* Utilities */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--color-ice-border);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+.text-mono {
+    font-family: var(--font-mono);
+}
+
+.full-screen {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animations */
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.floating {
+    animation: float 6s ease-in-out infinite;
+}
