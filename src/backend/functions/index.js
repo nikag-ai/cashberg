@@ -497,3 +497,42 @@ exports.deleteBucket = onCall(async (request) => {
         throw e;
     }
 });
+
+/**
+ * 8. Edit Bucket
+ * Updates Name, Target Amount, and Recalculates 'isFilled'.
+ */
+exports.editBucket = onCall(async (request) => {
+    try {
+        if (!request.auth) throw new HttpsError('unauthenticated', 'Login required');
+
+        const { bucketId, name, targetAmountCents } = request.data;
+        const uid = request.auth.uid;
+        const db = admin.firestore();
+
+        const bucketRef = db.doc(`users/${uid}/buckets/${bucketId}`);
+
+        return await db.runTransaction(async (t) => {
+            const bucketDoc = await t.get(bucketRef);
+            if (!bucketDoc.exists) throw new HttpsError('not-found', 'Bucket not found');
+
+            const bucket = bucketDoc.data();
+            const newName = name || bucket.name;
+            const newTarget = targetAmountCents !== undefined ? targetAmountCents : bucket.targetAmount;
+            const currentAmount = bucket.currentAmount || 0;
+
+            t.update(bucketRef, {
+                name: newName,
+                targetAmount: newTarget,
+                isFilled: currentAmount >= newTarget,
+                updatedAt: FieldValue.serverTimestamp()
+            });
+
+            return { success: true };
+        });
+
+    } catch (e) {
+        console.error("DEBUG_V2: EDIT BUCKET CRASH", e);
+        throw e;
+    }
+});

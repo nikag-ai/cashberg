@@ -145,6 +145,7 @@ export const useFunctions = () => {
         reconcileLedger: httpsCallable(functions, 'reconcileLedger'),
         undoTransaction: httpsCallable(functions, 'undoTransaction'),
         createBucket: httpsCallable(functions, 'createBucket'),
-        deleteBucket: httpsCallable(functions, 'deleteBucket')
+        deleteBucket: httpsCallable(functions, 'deleteBucket'),
+        editBucket: httpsCallable(functions, 'editBucket')
     };
 };

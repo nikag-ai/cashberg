@@ -7,15 +7,18 @@ import { Trash2 } from 'lucide-react';
 const TheAbyss = ({ uid, onBack }) => {
     // access global data context
     const { buckets, iceberg, loading: { buckets: loading } } = useData();
-    const { transferFunds, createBucket, deleteBucket } = useFunctions();
+    const { transferFunds, createBucket, deleteBucket, editBucket } = useFunctions();
 
     const [expandedId, setExpandedId] = useState(null);
     const [isCreating, setIsCreating] = useState(false);
     const [newBucketName, setNewBucketName] = useState('');
     const [newBucketTarget, setNewBucketTarget] = useState('');
 
-    // Transfer State
+    // Expanded State
     const [transferAmount, setTransferAmount] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
+    const [editName, setEditName] = useState('');
+    const [editTarget, setEditTarget] = useState('');
     const [toast, setToast] = useState(null);
 
     const showToast = (msg) => {
@@ -46,6 +49,27 @@ const TheAbyss = ({ uid, onBack }) => {
                 showToast("Delete failed: " + e.message);
             }
         }
+    };
+
+    const handleEdit = async (b) => {
+        try {
+            await editBucket({
+                bucketId: b.id,
+                name: editName,
+                targetAmountCents: parseFloat(editTarget || 0) * 100
+            });
+            showToast("Bucket Updated");
+            setIsEditing(false);
+        } catch (e) {
+            console.error(e);
+            showToast("Update failed: " + e.message);
+        }
+    };
+
+    const startEdit = (b) => {
+        setEditName(b.name);
+        setEditTarget((b.targetAmount / 100).toFixed(2));
+        setIsEditing(true);
     };
 
     const handleTransfer = async (bucketId, type, currentBucketAmount) => {
@@ -108,8 +132,14 @@ const TheAbyss = ({ uid, onBack }) => {
                         <div
                             style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
                             onClick={() => {
-                                setExpandedId(expandedId === b.id ? null : b.id);
-                                setTransferAmount(''); // Reset on toggle
+                                if (expandedId === b.id) {
+                                    setExpandedId(null);
+                                    setIsEditing(false);
+                                } else {
+                                    setExpandedId(b.id);
+                                    setTransferAmount('');
+                                    setIsEditing(false);
+                                }
                             }}
                         >
                             <div>
@@ -129,44 +159,81 @@ const TheAbyss = ({ uid, onBack }) => {
                         {/* Expanded Controls */}
                         {expandedId === b.id && (
                             <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
-                                    <input
-                                        type="number"
-                                        value={transferAmount}
-                                        onChange={(e) => setTransferAmount(e.target.value)}
-                                        placeholder="0.00"
-                                        style={{
-                                            flex: 1, padding: '10px', borderRadius: '8px', border: 'none',
-                                            background: 'rgba(255,255,255,0.1)', color: 'white', fontSize: '1.2rem', textAlign: 'center'
-                                        }}
-                                    />
-                                </div>
 
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    <button
-                                        onClick={() => handleTransfer(b.id, 'FREEZE', b.currentAmount)}
-                                        className="glass-card"
-                                        style={{ flex: 1, padding: '10px', fontSize: '0.9rem', cursor: 'pointer', background: 'rgba(50, 150, 255, 0.2)' }}
-                                    >
-                                        Freeze ❄️
-                                    </button>
-                                    <button
-                                        onClick={() => handleTransfer(b.id, 'THAW', b.currentAmount)}
-                                        className="glass-card"
-                                        style={{ flex: 1, padding: '10px', fontSize: '0.9rem', cursor: 'pointer', background: 'rgba(255, 100, 100, 0.2)' }}
-                                    >
-                                        Thaw 🔥
-                                    </button>
-                                </div>
+                                {/* Edit Mode */}
+                                {isEditing ? (
+                                    <div onClick={e => e.stopPropagation()} style={{ marginBottom: '20px', background: 'rgba(0,0,0,0.3)', padding: '15px', borderRadius: '10px' }}>
+                                        <div style={{ color: '#aaa', marginBottom: '5px', fontSize: '0.8rem' }}>EDIT BUCKET</div>
+                                        <input
+                                            value={editName}
+                                            onChange={e => setEditName(e.target.value)}
+                                            style={{ width: '100%', padding: '10px', marginBottom: '10px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white' }}
+                                        />
+                                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                            <span style={{ color: '#aaa' }}>Target: $</span>
+                                            <input
+                                                type="number"
+                                                value={editTarget}
+                                                onChange={e => setEditTarget(e.target.value)}
+                                                style={{ flex: 1, padding: '10px', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white' }}
+                                            />
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                                            <button onClick={() => handleEdit(b)} style={{ flex: 1, padding: '8px', background: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Save</button>
+                                            <button onClick={() => setIsEditing(false)} style={{ flex: 1, padding: '8px', background: 'transparent', border: '1px solid #666', color: 'white', borderRadius: '5px', cursor: 'pointer' }}>Cancel</button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    /* Normal Expand View */
+                                    <>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+                                            <input
+                                                type="number"
+                                                value={transferAmount}
+                                                onChange={(e) => setTransferAmount(e.target.value)}
+                                                placeholder="0.00"
+                                                onClick={e => e.stopPropagation()}
+                                                style={{
+                                                    flex: 1, padding: '10px', borderRadius: '8px', border: 'none',
+                                                    background: 'rgba(255,255,255,0.1)', color: 'white', fontSize: '1.2rem', textAlign: 'center'
+                                                }}
+                                            />
+                                        </div>
 
-                                <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); handleDelete(b); }}
-                                        style={{ background: 'transparent', border: 'none', color: '#ff4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
-                                    >
-                                        <Trash2 size={16} /> Delete Bucket
-                                    </button>
-                                </div>
+                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleTransfer(b.id, 'FREEZE', b.currentAmount); }}
+                                                className="glass-card"
+                                                style={{ flex: 1, padding: '10px', fontSize: '0.9rem', cursor: 'pointer', background: 'rgba(50, 150, 255, 0.2)' }}
+                                            >
+                                                Freeze ❄️
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleTransfer(b.id, 'THAW', b.currentAmount); }}
+                                                className="glass-card"
+                                                style={{ flex: 1, padding: '10px', fontSize: '0.9rem', cursor: 'pointer', background: 'rgba(255, 100, 100, 0.2)' }}
+                                            >
+                                                Thaw 🔥
+                                            </button>
+                                        </div>
+
+                                        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); startEdit(b); }}
+                                                style={{ background: 'transparent', border: 'none', color: '#aaa', cursor: 'pointer', textDecoration: 'underline' }}
+                                            >
+                                                Edit Details
+                                            </button>
+
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleDelete(b); }}
+                                                style={{ background: 'transparent', border: 'none', color: '#ff4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+                                            >
+                                                <Trash2 size={16} /> Delete Bucket
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>
