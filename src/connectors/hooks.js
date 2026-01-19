@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, connectAuthEmulator } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, connectAuthEmulator, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, connectFirestoreEmulator } from 'firebase/firestore';
 import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
 
@@ -45,9 +45,18 @@ export const useAuth = () => {
     }, []);
 
     const login = (email, pass) => signInWithEmailAndPassword(auth, email, pass);
+    const loginWithGoogle = async () => {
+        const provider = new GoogleAuthProvider();
+        try {
+            await signInWithPopup(auth, provider);
+        } catch (error) {
+            console.error("Google Auth Error:", error);
+            throw error;
+        }
+    };
     const logout = () => signOut(auth);
 
-    return { user, loading, login, logout };
+    return { user, loading, login, loginWithGoogle, logout };
 };
 
 export const useIceberg = (uid) => {
