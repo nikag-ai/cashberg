@@ -6,9 +6,9 @@ import { getAuth, connectAuthEmulator, signInWithCredential, GoogleAuthProvider,
 
 // Test Config (Connects to Emulator)
 const firebaseConfig = {
-    projectId: "cashberg-test",
+    projectId: "cashberg-fc307",
     apiKey: "fake-api-key",
-    authDomain: "cashberg-test.firebaseapp.com",
+    authDomain: "cashberg-fc307.firebaseapp.com",
 };
 
 describe('Backend Integration (Emulators)', () => {

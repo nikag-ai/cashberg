@@ -4,7 +4,7 @@ import { useAuth, useIceberg, useBuckets, useTransactions } from './hooks';
 const DataContext = createContext(null);
 
 export const DataProvider = ({ children }) => {
-    const { user, loading: authLoading, login, logout } = useAuth();
+    const { user, loading: authLoading, login, signup, loginWithGoogle, logout } = useAuth();
 
     // Hooks handle their own "if no uid, return empty/loading" logic
     const { data: iceberg, loading: icebergLoading } = useIceberg(user?.uid);
@@ -18,6 +18,8 @@ export const DataProvider = ({ children }) => {
         <DataContext.Provider value={{
             user,
             login,
+            loginWithGoogle,
+            signup,
             logout,
             iceberg,
             buckets,

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, connectAuthEmulator, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, connectAuthEmulator, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { getFirestore, doc, onSnapshot, collection, query, orderBy, limit, connectFirestoreEmulator } from 'firebase/firestore';
 import { getFunctions, httpsCallable, connectFunctionsEmulator } from 'firebase/functions';
 
@@ -15,7 +15,7 @@ const firebaseConfig = {
     measurementId: "G-M7HM6ZFJSJ"
 };
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const functions = getFunctions(app);
@@ -23,13 +23,19 @@ const functions = getFunctions(app);
 // Use Emulators in Dev
 if (window.location.hostname === "localhost") {
     // Prevent multiple initializations (Hot Reload safety)
+    // We attach a flag to the auth object or global to track connection
+    // But since auth/db might be new objects if module reloads, we need to be careful.
+    // However, if getApps() returns the existing app, auth/db should be the same instances?
+    // Actually, getAuth(app) returns the singleton for that app.
+
+    // We can use a global flag or check `auth.emulatorConfig` (internal)
+
     if (!globalThis._emulatorsConnected) {
-        // Use 127.0.0.1 to avoid localhost resolution issues
-        connectAuthEmulator(auth, "http://127.0.0.1:9099");
-        connectFirestoreEmulator(db, "127.0.0.1", 8080);
-        connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+        connectAuthEmulator(auth, "http://localhost:9099");
+        connectFirestoreEmulator(db, "localhost", 8080);
+        connectFunctionsEmulator(functions, "localhost", 5001);
         globalThis._emulatorsConnected = true;
-        console.log("🔥 Connected to Firebase Emulators (127.0.0.1)");
+        console.log("🔥 Connected to Firebase Emulators (localhost)");
     }
 }
 
@@ -38,13 +44,28 @@ export const useAuth = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        return onAuthStateChanged(auth, (u) => {
+        // Safety timeout: If Firebase doesn't respond in 2s, assume loading finished (likely logged out or offline)
+        const timeout = setTimeout(() => {
+            if (loading) {
+                console.warn("Auth listener timed out, defaulting to logged out state.");
+                setLoading(false);
+            }
+        }, 2000);
+
+        const unsubscribe = onAuthStateChanged(auth, (u) => {
+            clearTimeout(timeout);
             setUser(u);
             setLoading(false);
         });
+
+        return () => {
+            clearTimeout(timeout);
+            unsubscribe();
+        }
     }, []);
 
     const login = (email, pass) => signInWithEmailAndPassword(auth, email, pass);
+    const signup = (email, pass) => createUserWithEmailAndPassword(auth, email, pass);
     const loginWithGoogle = async () => {
         const provider = new GoogleAuthProvider();
         try {
@@ -56,7 +77,7 @@ export const useAuth = () => {
     };
     const logout = () => signOut(auth);
 
-    return { user, loading, login, loginWithGoogle, logout };
+    return { user, loading, login, signup, loginWithGoogle, logout };
 };
 
 export const useIceberg = (uid) => {
